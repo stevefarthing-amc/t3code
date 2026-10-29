@@ -259,6 +259,11 @@ import {
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useSoftwareKeyboardOpen } from "../../hooks/useSoftwareKeyboardOpen";
 import { useStableCallback } from "../../hooks/useStableCallback";
+import {
+  isComposerVoiceInputAvailable,
+  useComposerVoiceInput,
+} from "../../voiceInput/useComposerVoiceInput";
+import { ComposerVoiceInputButton } from "./ComposerVoiceInputButton";
 import { usePanelAnimationSettings } from "../../panelAnimations";
 import { readEnvironmentScope } from "../../state/session";
 import type { ReviewCommentContext } from "../../reviewCommentContext";
@@ -1817,6 +1822,18 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     };
   };
   const readComposerSnapshotStable = useStableCallback(readComposerSnapshot);
+  const voiceInput = useComposerVoiceInput({
+    ownerKey: composerDraftTargetKey,
+    readDraft: () => ({
+      text: promptRef.current,
+      cursor: readComposerSnapshotStable().expandedCursor,
+    }),
+    commitDraft: (text, cursor) => {
+      // The controller only commits an insertion at the cursor it captured.
+      const start = cursor - (text.length - promptRef.current.length);
+      applyPromptReplacementStable(start, start, text.slice(start, cursor));
+    },
+  });
 
   const resolveActiveComposerTrigger = (): {
     snapshot: { value: string; cursor: number; expandedCursor: number };
@@ -2045,6 +2062,12 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
     dispatchMode?: ComposerDispatchMode,
     submissionIntent?: ComposerSubmissionIntent,
   ) => {
+    if (voiceInput.state.phase !== "idle") {
+      event?.preventDefault();
+      // Enter while dictating finishes the recording instead of sending.
+      if (voiceInput.state.phase === "recording") voiceInput.stop();
+      return;
+    }
     if (
       noProviderAvailable ||
       isSendDisabled ||
@@ -3085,6 +3108,9 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
       focusComposer={focusComposer}
     />
   ) : null;
+  const composerVoiceInputButton = isComposerVoiceInputAvailable ? (
+    <ComposerVoiceInputButton voiceInput={voiceInput} />
+  ) : null;
   return (
     <form
       ref={composerFormRef}
@@ -3429,7 +3455,12 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                   showMobilePendingAnswerActions && "hidden sm:flex",
                 )}
               >
-                {composerAttachButton ? <div className="me-2">{composerAttachButton}</div> : null}
+                {composerAttachButton || composerVoiceInputButton ? (
+                  <div className="me-2 flex min-w-0 items-center gap-0.5">
+                    {composerAttachButton}
+                    {composerVoiceInputButton}
+                  </div>
+                ) : null}
                 <div
                   data-chat-composer-actions="right"
                   data-chat-composer-transition-actions="true"
