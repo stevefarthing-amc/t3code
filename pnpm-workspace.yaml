@@ -23,6 +23,8 @@ allowBuilds:
   node-pty: true
   # Ships N-API prebuilds; its install script only rebuilds from source.
   objc-js: false
+  # Its postinstall only warns about protobufjs version schemes.
+  protobufjs: false
   "react-native-enriched-markdown@file:apps/mobile/deps/react-native-enriched-markdown-1.2.0-t3.16-29ddd424.tgz": true
   sharp: true
   "@tsc-rs/typescript": true
@@ -241,6 +243,11 @@ overrides:
   expo-sharing: 58.0.19
   expo-widgets: 58.0.20
   "@ff-labs/fff-node": 0.11.0
+  "@huggingface/transformers": 4.3.2
+  # The web client runs Whisper on onnxruntime-web; it never loads the Node runtime or sharp.
+  # The patch drops them from the manifest too, so license notices don't list them.
+  "@huggingface/transformers>onnxruntime-node": "-"
+  "@huggingface/transformers>sharp": "-"
   "@legendapp/list": 3.3.5
   "@pierre/diffs": 1.6.1
   "@react-native-ai/apple": 0.12.0
@@ -367,6 +374,8 @@ patchedDependencies:
   expo-sharing@58.0.19: patches/expo-sharing@58.0.19.patch
   expo-widgets@58.0.20: patches/expo-widgets@58.0.20.patch
   "@ff-labs/fff-node@0.11.0": patches/@ff-labs__fff-node@0.11.0.patch
+  # See the @huggingface/transformers overrides.
+  "@huggingface/transformers@4.3.2": patches/@huggingface__transformers@4.3.2.patch
   "@legendapp/list@3.3.5": patches/@legendapp__list@3.3.5.patch
   # Exports the dependency-light subpaths mobile and the web diff parser import, and keeps
   # measured wrapped-row heights above an edit (fileEditorVirtualization.test.ts).

@@ -4,3 +4,7 @@ export const isElectron = typeof window !== "undefined" && window.desktopBridge 
 export const isSecretsFeatureEnabled = ["1", "true"].includes(
   import.meta.env.T3CODE_FEATURE_SECRETS?.trim().toLowerCase() ?? "",
 );
+
+export const isVoiceInputFeatureEnabled = ["1", "true"].includes(
+  import.meta.env.T3CODE_FEATURE_VOICE_INPUT?.trim().toLowerCase() ?? "",
+);
