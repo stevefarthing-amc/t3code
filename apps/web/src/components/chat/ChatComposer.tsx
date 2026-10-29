@@ -3456,7 +3456,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                 )}
               >
                 {composerAttachButton || composerVoiceInputButton ? (
-                  <div className="me-2 flex items-center gap-0.5">
+                  <div className="me-2 flex min-w-0 items-center gap-0.5">
                     {composerAttachButton}
                     {composerVoiceInputButton}
                   </div>
